@@ -66,7 +66,7 @@ for hit_rolls in combinations(range(1, num_sides+1), num_hit_dice):
         successful_wound_rolls += 1
         
          # Loop through all possible combinations of save dice rolls
-         for save_rolls in combinations(range(1, num_sides+1), num_hit_dice):
+        for save_rolls in combinations(range(1, num_sides+1), num_hit_dice):
          # If the sum of the save rolls is less than the save target,
          # increment the successful saves counter
             if sum(save_rolls) < save_target:
