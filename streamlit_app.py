@@ -63,13 +63,14 @@ for hit_rolls in combinations(range(1, num_sides+1), num_hit_dice):
       # If the sum of the wound rolls is greater than or equal to the wound target,
       # increment the successful wound rolls counter
       if sum(wound_rolls) >= wound_target:
-  successful_wound_rolls += 1
-  # Loop through all possible combinations of save dice rolls
-  for save_rolls in combinations(range(1, num_sides+1), num_hit_dice):
-    # If the sum of the save rolls is less than the save target,
-    # increment the successful saves counter
-    if sum(save_rolls) < save_target:
-      successful_saves += 1
+        successful_wound_rolls += 1
+        
+         # Loop through all possible combinations of save dice rolls
+         for save_rolls in combinations(range(1, num_sides+1), num_hit_dice):
+         # If the sum of the save rolls is less than the save target,
+         # increment the successful saves counter
+            if sum(save_rolls) < save_target:
+                successful_saves += 1
 
 # Create a text input field to specify the number of sides on each die
 num_sides = st.sidebar.text_input("Number of sides on each die", "6")
