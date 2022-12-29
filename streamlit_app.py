@@ -24,13 +24,13 @@ num_hit_dice = st.sidebar.slider("Number of dice for hit roll", 1, 50, 3, key = 
 
 # Create a dropdown menu to select the type of save
 save_types = [
-    ("No save", 6),
-    ("Ork/Guard", 5),
-    ("Votann Save", 4),
-    ("Astartes", 3)
-    ("Terminator", 2),
+    ("6", 6),
+    ("5+", 5),
+    ("4+", 4),
+    ("3+", 3)
+    ("2+", 2),
 ]
-selected_save = st.sidebar.selectbox("Select save type", [s[0] for s in save_types], key = "save_types")
+selected_save = st.sidebar.selectbox("Select save type", [s[0] for s in save_types], key = "save_types1")
 
 # Find the target roll for the selected save
 for save, save_target in save_types:
