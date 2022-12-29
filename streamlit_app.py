@@ -27,9 +27,10 @@ save_types = [
     ("6", 6),
     ("5+", 5),
     ("4+", 4),
-    ("3+", 3)
+    ("3+", 3),
     ("2+", 2),
 ]
+
 selected_save = st.sidebar.selectbox("Select save type", [s[0] for s in save_types], key = "save_types1")
 
 # Find the target roll for the selected save
