@@ -1,113 +1,165 @@
 import streamlit as st
-from fastai.vision.all import *
-import altair as alt
-import pandas as pd
-import os
-import urllib
-import pathlib
-from PIL import ImageOps
-import pathlib
+from itertools import combinations
 
-def main():
-    st.title('Peru Fish Classifier')
+# Create a text input field to specify the number of sides on each die
+num_sides = st.sidebar.text_input("Number of sides on each die", "6")
 
-    for filename in EXTERNAL_DEPENDENCIES.keys():
-        download_file(filename)
-    
-    model = load_model()
-    
-    st.markdown("Fish photo for classification.")
-    image = st.file_uploader("", IMAGE_TYPES)
-    if image:
-        image_data = image.read()
-        st.image(image_data, use_column_width=True)
+# Convert the number of sides to an integer
+num_sides = int(num_sides)
 
-        prediction = model.predict(image_data)
-        
-        pred_chart = predictions_to_chart(prediction, classes = model.dls.vocab)
-        st.altair_chart(pred_chart, use_container_width=True)
+# Create a text input field to specify the target number for the hit roll
+hit_target = st.sidebar.text_input("Target number for hit roll", "3")
 
-def predictions_to_chart(prediction, classes):
-    pred_rows = []
-    for i, conf in enumerate(list(prediction[2])):
-        pred_row = {'class': classes[i],
-                    'probability': round(float(conf) * 100,2)}
-        pred_rows.append(pred_row)
-    pred_df = pd.DataFrame(pred_rows)
-    pred_df.head()
-    top_probs = pred_df.sort_values('probability', ascending=False).head(4)
-    chart = (
-        alt.Chart(top_probs)
-        .mark_bar()
-        .encode(
-            x=alt.X("probability:Q", scale=alt.Scale(domain=(0, 100))),
-            y=alt.Y("class:N",
-                    sort=alt.EncodingSortField(field="probability", order="descending"))
-        )
-    )
-    return chart    
+# Convert the hit target to an integer
+hit_target = int(hit_target)
 
-plt = platform.system()
-print(plt)
-if plt == 'Linux' or plt == 'Darwin': pathlib.WindowsPath = pathlib.PosixPath
-    
-@st.cache(allow_output_mutation=True)
-def load_model():
-    plt = platform.system()
+# Create a text input field to specify the target number for the wound roll
+wound_target = st.sidebar.text_input("Target number for wound roll", "4")
 
-    if plt == 'Linux' or plt == 'Darwin': pathlib.WindowsPath = pathlib.PosixPath
-    inf_model = load_learner('perumixed3.pkl', cpu=True)
+# Convert the wound target to an integer
+wound_target = int(wound_target)
 
-    return inf_model
+# Create a slider to specify the number of dice for the hit roll
+num_hit_dice = st.sidebar.slider("Number of dice for hit roll", 1, 10, 3)
 
+# Create a dropdown menu to select the type of save
+save_types = [
+    ("No save", 6),
+    ("Armor save", 4),
+    ("Invulnerable save", 3),
+]
+selected_save = st.sidebar.selectbox("Select save type", [s[0] for s in save_types])
 
-def download_file(file_path):
-    # Don't download the file twice. (If possible, verify the download using the file length.)
-    if os.path.exists(file_path):
-        if "size" not in EXTERNAL_DEPENDENCIES[file_path]:
-            return
-        elif os.path.getsize(file_path) == EXTERNAL_DEPENDENCIES[file_path]["size"]:
-            return
+# Find the target roll for the selected save
+for save, save_target in save_types:
+  if save == selected_save:
+    break
 
-    # These are handles to two visual elements to animate.
-    weights_warning, progress_bar = None, None
-    try:
-        weights_warning = st.warning("Downloading %s..." % file_path)
-        progress_bar = st.progress(0)
-        with open(file_path, "wb") as output_file:
-            with urllib.request.urlopen(EXTERNAL_DEPENDENCIES[file_path]["url"]) as response:
-                length = int(response.info()["Content-Length"])
-                counter = 0.0
-                MEGABYTES = 2.0 ** 20.0
-                while True:
-                    data = response.read(8192)
-                    if not data:
-                        break
-                    counter += len(data)
-                    output_file.write(data)
+# Create a text input field to specify the Armor Piercing (AP) save modifier
+ap_modifier = st.sidebar.text_input("Armor Piercing (AP) save modifier", "0")
 
-                    # We perform animation by overwriting the elements.
-                    weights_warning.warning("Downloading %s... (%6.2f/%6.2f MB)" %
-                        (file_path, counter / MEGABYTES, length / MEGABYTES))
-                    progress_bar.progress(min(counter / length, 1.0))
+# Convert the AP modifier to an integer
+ap_modifier = int(ap_modifier)
 
-    # Finally, we remove these visual elements by calling .empty().
-    finally:
-        if weights_warning is not None:
-            weights_warning.empty()
-        if progress_bar is not None:
-            progress_bar.empty()
-    
-    return
+# Create a text input field to specify the damage done by the weapon
+damage = st.sidebar.text_input("Damage done by weapon", "1")
 
-IMAGE_TYPES = ["png", "jpg"]
+# Convert the damage to an integer
+damage = int(damage)
 
-EXTERNAL_DEPENDENCIES = {
-    "perumixed3.pkl": {
-        "url": "https://www.dropbox.com/s/31e6wuwrlm66sco/perumixed3.pkl?dl=1",
-        "size": 179319095
-    }
-}
+# Initialize counters for the number of successful hit rolls, wound rolls, and saves
+successful_hit_rolls = 0
+successful_wound_rolls = 0
+successful_saves = 0
 
-if __name__ == "__main__":
-    main()
+# Loop through all possible combinations of hit dice rolls
+for hit_rolls in combinations(range(1, num_sides+1), num_hit_dice):
+  # If the sum of the hit rolls is greater than or equal to the hit target,
+  # increment the successful hit rolls counter
+  if sum(hit_rolls) >= hit_target:
+    successful_hit_rolls += 1
+    # Loop through all possible combinations of wound dice rolls
+    for wound_rolls in combinations(range(1, num_sides+1), num_hit_dice):
+      # If the sum of the wound rolls is greater than or equal to the wound target,
+      # increment the successful wound rolls counter
+      if sum(wound_rolls) >= wound
+
+# Create a text input field to specify the number of sides on each die
+num_sides = st.sidebar.text_input("Number of sides on each die", "6")
+
+# Convert the number of sides to an integer
+num_sides = int(num_sides)
+
+# Create a text input field to specify the target number for the hit roll
+hit_target = st.sidebar.text_input("Target number for hit roll", "3")
+
+# Convert the hit target to an integer
+hit_target = int(hit_target)
+
+# Create a text input field to specify the target number for the wound roll
+wound_target = st.sidebar.text_input("Target number for wound roll", "4")
+
+# Convert the wound target to an integer
+wound_target = int(wound_target)
+
+# Create a slider to specify the number of dice for the hit roll
+num_hit_dice = st.sidebar.slider("Number of dice for hit roll", 1, 10, 3)
+
+# Create a dropdown menu to select the type of save
+save_types = [
+    ("No save", 6),
+    ("Armor save", 4),
+    ("Invulnerable save", 3),
+]
+selected_save = st.sidebar.selectbox("Select save type", [s[0] for s in save_types])
+
+# Find the target roll for the selected save
+for save, save_target in save_types:
+  if save == selected_save:
+    break
+
+# Create a text input field to specify the Armor Piercing (AP) save modifier
+ap_modifier = st.sidebar.text_input("Armor Piercing (AP) save modifier", "0")
+
+# Convert the AP modifier to an integer
+ap_modifier = int(ap_modifier)
+
+# Create a text input field to specify the damage done by the weapon
+damage = st.sidebar.text_input("Damage done by weapon", "1")
+
+# Convert the damage to an integer
+damage = int(damage)
+
+# Initialize counters for the number of successful hit rolls, wound rolls, and saves
+successful_hit_rolls = 0
+successful_wound_rolls = 0
+successful_saves = 0
+
+# Loop through all possible combinations of hit dice rolls
+for hit_rolls in combinations(range(1, num_sides+1), num_hit_dice):
+  # If the sum of the hit rolls is greater than or equal to the hit target,
+  # increment the successful hit rolls counter
+  if sum(hit_rolls) >= hit_target:
+    successful_hit_rolls += 1
+    # Loop through all possible combinations of wound dice rolls
+    for wound_rolls in combinations(range(1, num_sides+1), num_hit_dice):
+      # If the sum of the wound rolls is greater than or equal to the wound target,
+      # increment the successful wound rolls counter
+      if sum(wound_rolls) >= wound_target:
+        successful_wound_rolls += 1
+        # Loop through all possible combinations of save dice rolls
+        for save_rolls in combinations(range(1, num_sides+1), num_hit_dice):
+          # If the sum of the save rolls is less than the save target,
+          # increment the successful saves counter
+          if sum(save_rolls) < save_target:
+            successful_saves += 1
+
+# Calculate the probability of making a successful hit roll
+hit_probability = successful_hit_rolls / (num_sides ** num_hit_dice)
+
+# Calculate the probability of making a successful wound roll, given a successful hit roll
+wound_probability = successful_wound_rolls / (num_sides ** num_hit_dice)
+
+# Calculate the probability of making a successful save, given a successful wound roll
+save_probability = successful_saves / (num_sides ** num_hit_dice)
+
+# Calculate the average number of successful hit rolls
+average_successful_hit_rolls = hit_probability * num_hit_dice
+
+# Calculate the average number of successful wound rolls, given a successful hit roll
+average_successful_wound_rolls = wound_probability * num_hit_dice
+
+# Calculate the average number of successful saves, given a successful wound roll
+average_successful_saves = save_probability * num_hit_dice
+
+# Calculate the average number of wounds caused, given a successful hit roll and failed save
+average_wounds = (1 - save_probability) * damage
+
+# Display the results
+st.write(f"Probability of making a successful hit roll: {hit_probability:.3f}")
+st.write(f"Probability of making a successful wound roll, given a successful hit roll: {wound_probability:.3f}")
+st.write(f"Probability of making a successful save, given a successful wound roll: {save_probability:.3f}")
+st.write(f"Average number of successful hit rolls: {average_successful_hit_rolls:.3f}")
+st.write(f"Average number of successful wound rolls, given a successful hit roll: {average_successful_wound_rolls:.3f}")
+st.write(f"Average number of successful saves, given a successful wound roll: {average_successful_saves:.3f}")
+st.write(f"Average number of wounds caused, given a successful hit roll and failed save: {average_wounds:.3f}")
