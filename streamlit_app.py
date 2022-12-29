@@ -2,25 +2,25 @@ import streamlit as st
 from itertools import combinations
 
 # Create a text input field to specify the number of sides on each die
-num_sides = st.sidebar.text_input("Number of sides on each die", "6")
+num_sides = st.sidebar.text_input("Number of sides on each die", "6", key = "dice_sides_1")
 
 # Convert the number of sides to an integer
 num_sides = int(num_sides)
 
 # Create a text input field to specify the target number for the hit roll
-hit_target = st.sidebar.text_input("Target number for hit roll", "3")
+hit_target = st.sidebar.text_input("Target number for hit roll", "3", key = "hit_1")
 
 # Convert the hit target to an integer
 hit_target = int(hit_target)
 
 # Create a text input field to specify the target number for the wound roll
-wound_target = st.sidebar.text_input("Target number for wound roll", "4")
+wound_target = st.sidebar.text_input("Target number for wound roll", "4", key = "wound_1")
 
 # Convert the wound target to an integer
 wound_target = int(wound_target)
 
 # Create a slider to specify the number of dice for the hit roll
-num_hit_dice = st.sidebar.slider("Number of dice for hit roll", 1, 50, 3)
+num_hit_dice = st.sidebar.slider("Number of dice for hit roll", 1, 50, 3, key = "num_dice_1")
 
 # Create a dropdown menu to select the type of save
 save_types = [
@@ -28,7 +28,7 @@ save_types = [
     ("Armor save", 4),
     ("Invulnerable save", 3),
 ]
-selected_save = st.sidebar.selectbox("Select save type", [s[0] for s in save_types])
+selected_save = st.sidebar.selectbox("Select save type", [s[0] for s in save_types], key = "save_types")
 
 # Find the target roll for the selected save
 for save, save_target in save_types:
@@ -36,13 +36,13 @@ for save, save_target in save_types:
     break
 
 # Create a text input field to specify the Armor Piercing (AP) save modifier
-ap_modifier = st.sidebar.text_input("Armor Piercing (AP) save modifier", "0")
+ap_modifier = st.sidebar.text_input("Armor Piercing (AP) save modifier", "0", key = "save_mod_1")
 
 # Convert the AP modifier to an integer
 ap_modifier = int(ap_modifier)
 
 # Create a text input field to specify the damage done by the weapon
-damage = st.sidebar.text_input("Damage done by weapon", "1")
+damage = st.sidebar.text_input("Damage done by weapon", "1", key = "damage_mod")
 
 # Convert the damage to an integer
 damage = int(damage)
