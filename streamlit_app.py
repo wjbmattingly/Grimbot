@@ -2,25 +2,24 @@ import streamlit as st
 from itertools import combinations
 
 # Create a text input field to specify the number of sides on each die
-num_sides = st.sidebar.text_input("Number of sides on each die", "6", key = "dice_sides_1")
+sides = st.sidebar.number_input("Number of sides on each die", 6, key = "dice_sides_1")
 
-# Convert the number of sides to an integer
-num_sides = int(num_sides)
+unit_check = st.sidebar.checkbox("Damage Efficiency?")
+if unit_check:
+    unit_points = st.sidebar.number_input("Points per Unit", 1)
 
 # Create a text input field to specify the target number for the hit roll
-hit_target = st.sidebar.text_input("Target number for hit roll", "3", key = "hit_1")
+hit_target = st.sidebar.number_input("Target number for hit roll", 3, key = "hit_1")
 
-# Convert the hit target to an integer
-hit_target = int(hit_target)
+six_check = st.sidebar.checkbox("Exploding Sixes?")
+if six_check:
+    double_exploding = st.sidebar.checkbox("Double Exploding Sixes?")
 
 # Create a text input field to specify the target number for the wound roll
-wound_target = st.sidebar.text_input("Target number for wound roll", "4", key = "wound_1")
-
-# Convert the wound target to an integer
-wound_target = int(wound_target)
+wound_target = st.sidebar.number_input("Target number for wound roll", 4, key = "wound_1")
 
 # Create a slider to specify the number of dice for the hit roll
-num_hit_dice = st.sidebar.slider("Number of dice for hit roll", 1, 50, 3, key = "num_dice_1")
+dice = st.sidebar.slider("Number of dice for hit roll", 1, 50, 3, key = "num_dice_1")
 
 # Create a dropdown menu to select the type of save
 save_types = [
@@ -35,77 +34,80 @@ selected_save = st.sidebar.selectbox("Select save type", [s[0] for s in save_typ
 
 # Find the target roll for the selected save
 for save, save_target in save_types:
-  if save == selected_save:
-    break
+    if save == selected_save:
+        break
 
 # Create a text input field to specify the Armor Piercing (AP) save modifier
-ap_modifier = st.sidebar.text_input("Armor Piercing (AP) save modifier", "0", key = "save_mod_1")
-
-# Convert the AP modifier to an integer
-ap_modifier = int(ap_modifier)
+ap_modifier = st.sidebar.number_input("Armor Piercing (AP) save modifier", 0, key = "save_mod_1")
 
 # Create a text input field to specify the damage done by the weapon
-damage = st.sidebar.text_input("Damage done by weapon", "1", key = "damage_mod")
+dmg = st.sidebar.number_input("Damage done by weapon", 1, key = "damage_mod")
 
-# Convert the damage to an integer
-damage = int(damage)
+def probability(sides, dice, target, hit=False, save=False, ap=0, esix=False):
+    if save == True:
+        six_hits = (sides+1)-(target+ap)
+        six_prob = (six_hits/sides)
+        six_likely = abs(six_prob*dice)
+    wins = (sides+1)-(target+ap)
+    losses = sides-wins
+    prob = (wins/sides)
+    likely = prob*dice
+    if save==False:
+        if hit==True:
+            if esix==True:
+                six_hit = (sides+1)-6
+                six_prob = (six_hit/sides)*dice
+                likely = six_prob+likely
+                return prob, likely, six_prob
+            else:
+                return prob, likely
+        else:
+            return prob, likely
+    elif save==True:
+        return prob, likely, six_likely
 
-# Initialize counters for the number of successful hit rolls, wound rolls, and saves
-successful_hit_rolls = 0
-successful_wound_rolls = 0
-successful_saves = 0
 
-# Loop through all possible combinations of hit dice rolls
-for hit_rolls in combinations(range(1, num_sides+1), num_hit_dice):
-  # If the sum of the hit rolls is greater than or equal to the hit target,
-  # increment the successful hit rolls counter
-  if sum(hit_rolls) >= hit_target:
-    successful_hit_rolls += 1
-    # Loop through all possible combinations of wound dice rolls
-    for wound_rolls in combinations(range(1, num_sides+1), num_hit_dice):
-      # If the sum of the wound rolls is greater than or equal to the wound target,
-      # increment the successful wound rolls counter
-      if sum(wound_rolls) >= wound_target:
-        successful_wound_rolls += 1
-        
-         # Loop through all possible combinations of save dice rolls
-        for save_rolls in combinations(range(1, num_sides+1), num_hit_dice):
-         # If the sum of the save rolls is less than the save target,
-         # increment the successful saves counter
-            if sum(save_rolls) < save_target:
-                successful_saves += 1
+def damage(dmg, dice, armor_break=0):
+    return dmg*dice
+exploding_six_chance = 0
+if six_check:
+    hit_prob, hit_likely, exploding_six_chance = probability(sides, dice, hit_target, hit=True, esix=True)
+    if double_exploding:
+        exploding_six_chance = exploding_six_chance*2
+else:
+    hit_prob, hit_likely = probability(sides, dice, hit_target, hit=True)
 
-# Find the target roll for the selected save
+wound_prob, wound_likely = probability(sides, hit_likely, wound_target)
+
+wound_likely = wound_likely+exploding_six_chance
+save_prob, save_likely, six_likely = probability(sides,
+                                            wound_likely,
+                                            save_target,
+                                            ap=ap_modifier,
+                                            save=True)
+if save_likely <= 0:
+    dmg_res = wound_likely*dmg
+    armor_broke = True
+else:
+    armor_broke = False
+    dmg_res = damage(dmg, wound_likely-save_likely)
+unit_res = ""
+if unit_check:
+    unit_res = dmg_res/unit_points
+
 for save, save_target in save_types:
-  if save == selected_save:
-    break
-
-# Calculate the probability of making a successful hit roll
-hit_probability = successful_hit_rolls / (num_sides ** num_hit_dice)
-
-# Calculate the probability of making a successful wound roll, given a successful hit roll
-wound_probability = successful_wound_rolls / (num_sides ** num_hit_dice)
-
-# Calculate the probability of making a successful save, given a successful wound roll
-save_probability = successful_saves / (num_sides ** num_hit_dice)
-
-# Calculate the average number of successful hit rolls
-average_successful_hit_rolls = hit_probability * num_hit_dice
-
-# Calculate the average number of successful wound rolls, given a successful hit roll
-average_successful_wound_rolls = wound_probability * num_hit_dice
-
-# Calculate the average number of successful saves, given a successful wound roll
-average_successful_saves = save_probability * num_hit_dice
-
-# Calculate the average number of wounds caused, given a successful hit roll and failed save
-average_wounds = (1 - save_probability) * damage
+    if save == selected_save:
+        break
 
 # Display the results
-st.write(f"Probability of making a successful hit roll: {hit_probability:.3f}")
-st.write(f"Probability of making a successful wound roll, given a successful hit roll: {wound_probability:.3f}")
-st.write(f"Probability of making a successful save, given a successful wound roll: {save_probability:.3f}")
-st.write(f"Average number of successful hit rolls: {average_successful_hit_rolls:.3f}")
-st.write(f"Average number of successful wound rolls, given a successful hit roll: {average_successful_wound_rolls:.3f}")
-st.write(f"Average number of successful saves, given a successful wound roll: {average_successful_saves:.3f}")
-st.write(f"Average number of wounds caused, given a successful hit roll and failed save: {average_wounds:.3f}")
+if six_check:
+    st.write(f"Probability of making a successful hit roll: {hit_prob:.3f} per dice with {hit_likely:.3f} dice hitting. The average number of exploding six is {exploding_six_chance:.3f}.")
+else:
+    st.write(f"Probability of making a successful hit roll: {hit_prob:.3f} per dice with {hit_likely:.3f} dice hitting.")
+st.write(f"Probability of making a successful wound roll, given a successful hit roll: {wound_prob:.3f} per dice with {wound_likely:.3f} dice hitting.")
+st.write(f"Probability of making a successful save, given a successful wound roll: {save_prob:.3f} per dice with {save_likely:.3f} dice saving.")
+if armor_broke==True:
+    st.write(f"Armor Broke")
+st.write(f"Amount of damage enemy will take on average: {dmg_res:.3f}")
+if unit_res != "":
+    st.write(f"Damage Efficiency (Points per Wound): {unit_res:.3f}")
