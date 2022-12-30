@@ -1,6 +1,7 @@
 import streamlit as st
 from itertools import combinations
 
+st.sidebar.image("images/grimbot_logo.png")
 # Create a text input field to specify the number of sides on each die
 sides = st.sidebar.number_input("Number of sides on each die", 6, key = "dice_sides_1")
 
